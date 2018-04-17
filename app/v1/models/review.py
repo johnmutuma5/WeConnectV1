@@ -17,9 +17,9 @@ class Review ():
         new_review.id = cls.review_index + 1
         return new_review
 
-    @staticmethod
-    def gen_id_string (num):
-        return 'REV{:0>5}'.format(num)
+    # @staticmethod
+    # def gen_id_string (num):
+    #     return 'REV{:0>5}'.format(num)
 
     def __init__ (self,business_id, author_id, data):
         self.heading = data['heading']

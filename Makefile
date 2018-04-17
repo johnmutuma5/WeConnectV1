@@ -6,3 +6,6 @@ install:
 
 freeze:
 	pip freeze | grep -v "pkg-resources" > requirements.txt
+
+test:
+	nosetests --exe -v --nocapture --with-coverage --cover-package=app

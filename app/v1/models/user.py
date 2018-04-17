@@ -18,10 +18,10 @@ class User ():
         return new_user
 
     def __init__ (self, data):
-        # self.first_name = data['first_name']
-        # self.last_name = data['last_name']
-        # self.gender = data['gender']
-        # self.email = data['email']
+        self.first_name = data['first_name']
+        self.last_name = data['last_name']
+        self.gender = data['gender']
+        self.email = data['email']
         self._mobile = None
         self._id = None
         self._username = None
@@ -68,7 +68,3 @@ class User ():
         self._username = None
         # assert 0, 'Invalid username'
         raise InvalidUserInputError ("User::namesetter", "Invalid username!")
-
-    def handback_unused_id (self):
-        # self.__class__.user_count -= 1
-        pass

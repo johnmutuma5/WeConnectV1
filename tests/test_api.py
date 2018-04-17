@@ -22,6 +22,16 @@ class TestAPICase (BaseAPITestSetUp):
         # assert same as username in data sent
         self.assertEqual (user_in_response_msg, user_data['username'])
 
+    def test_user_cannot_register_with_invalid_username(self):
+        invalid_names = ['000', 'j', '90jdj', 'axc', '    ']
+        for invalid_name in invalid_names:
+            # make a copy of valid user_data by unpacking and replace username with invalid_name
+            invalid_user_data = {**user_data, "username": invalid_name}
+            # send request with invalid_user_data
+            res = self.testHelper.register_user(invalid_user_data)
+            msg = (json.loads(res.data.decode("utf-8")))['msg']
+            self.assertEqual(msg, 'Invalid username!')
+
     # @pytest.mark.run(order = 2)
     def test_duplicate_username_disallowed (self):
         res = self.testHelper.register_user (user_data)
@@ -167,6 +177,25 @@ class TestAPICase (BaseAPITestSetUp):
         resp = self.testHelper.delete_business (1)
         msg = (json.loads(resp.data.decode("utf-8")))["msg"]
         self.assertEqual (msg, "SUCCESS: business deleted")
+
+    def test_users_can_only_update_or_delete_their_business(self):
+        self.testHelper.register_user(user_data)
+        self.testHelper.login_user(login_data)
+        self.testHelper.register_business(business_data)
+        # logout the current user
+        self.testHelper.logout_user()
+        # create a second user`
+        self.testHelper.register_user(user_data2)
+        self.testHelper.login_user(login_data2)
+        # try to update and del a business created by the just logged out user
+        responses = []
+        responses.extend([
+            # unauthorised update
+            self.testHelper.update_business(1, update_data),
+            # unauthorised del
+            self.testHelper.delete_business(1)])
+        for resp in responses:
+            self.assertEqual(resp.status_code, 401)
     #
     # @pytest.mark.run(order = 14)
     def test_users_can_make_a_review (self):
@@ -205,6 +234,18 @@ class TestAPICase (BaseAPITestSetUp):
         # check that all review heading have been returned
         for data in review_data:
             self.assertIn (data['heading'], resp_review_headings)
+
+
+    def test_users_retrieve_only_avail_business_info_and_reviews(self):
+        raw_id = 1000000
+        responses = [self.testHelper.get_business(raw_id),
+                     self.testHelper.get_all_reviews(raw_id)]
+        for resp in responses:
+            res_msg = (json.loads(resp.data.decode("utf-8")))["msg"]
+            # test message to match regex
+            pattern = r"^UNSUCCESSFUL:.+$"
+            self.assertRegexpMatches(res_msg, pattern)
+
 
     def test_users_can_reset_password (self):
         self.testHelper.register_user (user_data)
@@ -272,6 +313,40 @@ class TestReviewCase (unittest.TestCase):
         data_correct = review.author_id == self.test_author_id and review.heading == heading
         self.assertTrue(data_correct)
 
+
+class TestUserCase (unittest.TestCase):
+    def setUp(self):
+        self.data = {
+            'first_name': 'Lazuli',
+            'last_name': 'Murimi',
+            'gender': 'Female',
+            'email': 'lazuli@gmail.com',
+            'mobile': '254728000000',
+            'username': 'laz_doe',
+            'password': 'pass'
+        }
+        self.new_user = User.create_user(self.data)
+
+    def test_create_user(self):
+        supplied_name = self.data['first_name']
+        supplied_username = self.data['username']
+        supplied_mobile = self.data['mobile']
+        supplied_email = self.data['email']
+        # check data sent in correctly contained
+        data_correct = self.new_user.first_name == supplied_name and \
+            self.new_user.username == supplied_username and \
+            self.new_user.mobile == supplied_mobile and \
+            self.new_user.email == supplied_email
+        self.assertTrue(data_correct)
+        # edge case: raises AssertionError for mobile with non int characters
+        with self.assertRaises(InvalidUserInputError):
+            self.new_user.mobile = '254725k000000'
+
+    def test_validates_username(self):
+        invalid_names = ['000', 'j', '90jdj', 'axc', '    ']
+        for name in invalid_names:
+            with self.assertRaises(InvalidUserInputError):
+                self.new_user.username = name
 
 if __name__ == "__main__":
     unittest.main (module = __name__)
