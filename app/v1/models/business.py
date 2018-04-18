@@ -39,10 +39,9 @@ class Business ():
         return self._mobile
 
     @mobile.setter
-    def mobile (self, num):
+    def mobile (self, contact):
         # should raise InvalidUserInputError with invalid chars in mobille numbers
-        pattern = r"^[0-9]{12}$"
-        match = re.match (pattern, num)
+        match = re.match (r"^[0-9]{12}$", contact)
         if match:
             self._mobile = num
         else:
