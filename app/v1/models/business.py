@@ -43,7 +43,7 @@ class Business ():
         # should raise InvalidUserInputError with invalid chars in mobille numbers
         match = re.match (r"^[0-9]{12}$", contact)
         if match:
-            self._mobile = num
+            self._mobile = contact
         else:
             raise InvalidUserInputError ("Business::mobile.setter",
                                             "Invalid mobile number")
