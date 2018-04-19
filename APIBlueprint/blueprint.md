@@ -20,7 +20,7 @@ all the required fields are supplied.
   + Attributes (User Data)
 
 
-+ Response 200 (application/json)
++ Response 201 (application/json)
     The client recevies a success message on registration
 
   + Attributes
@@ -249,6 +249,45 @@ This action sends a request to delete a business from the API.
 
 
 
+## Business Reviews [/businesses/{business_id}/reviews]
+This resource handles getting and posting reviews of a business
+
++ Parameters
+    - business_id: 1 (integer) - The id of the business to review
+
+### Review a business [POST]
+This action handles posting a review for a business
+
++ Request (application/json)
+  Includes the heading and body of a review
+
+    + Attributes
+        - Include Review From User
+
++ Response 201 (application/json)
+  Includes a message for a successful review of a business
+
+    + Attributes
+        - msg: SUCCESS: review heading:[Wonderful] created! (string) - The success message for a successful review
+
++ Response 401 (application/json)
+  Includes a message for an unsuccessful review. This is when a user sends a request without login in
+
+    + Attributes
+        - Include Login Required
+
+
+### Get Reviews of a business [GET]
+This action handles getting all the reviews of a business
+
++ Response 200 (application/json)
+  Includes a list of all reviews of a business
+
+    + Attributes (array[Full Review Info])
+
+
+
+
 ## Data Structures
 ### User Data
 + first_name: John (string, required) - The first name of the users
@@ -267,7 +306,16 @@ This action sends a request to delete a business from the API.
 - mobile: 2547000200 (string, required) - The contact of the business
 
 ### Business Info (Business Registration Info)
-- id: BUS0001 (string) - The formatted id of the business.
+- id: BUS0001 (string) - The formatted `id` of the business.
+
+### Review From User
+- heading: Wonderful (string) - The `heading` of the review
+- body: Awesome products (string) - The `message` of the review
+
+### Full Review Info (Review From User)
+- author_id: USR00001 (string) - The `id` of the reviewer
+- business_id: BUS0001 (string) - The `id` of the business to review
+- id: REV00001 (string) - The `id` of the review
 
 ### Business Name Duplication Error
 - msg: Duplicate business name not allowed (string) - The error message for providing an taken business name
