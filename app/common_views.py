@@ -72,7 +72,7 @@ def add_a_review (business_id, author_id, review_data):
     new_review = Review.create_review (business_id, author_id, review_data)
     # store the review
     msg = store.add_review (new_review)
-    return jsonify ({'msg': msg}), 200
+    return jsonify ({'msg': msg}), 201
 
 
 
