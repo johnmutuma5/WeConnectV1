@@ -113,7 +113,6 @@ class TestAPICase (BaseAPITestSetUp):
         raw_id = 1
         res = self.testHelper.get_business (raw_id)
         res_business_info = (json.loads(res.data.decode("utf-8")))["info"]
-        print(res_business_info)
         res_business_id = res_business_info['id']
         # assert that the response business id equals the url variable
         sent_id = Business.gen_id_string (raw_id)
@@ -181,7 +180,7 @@ class TestAPICase (BaseAPITestSetUp):
             # unauthorised del
             self.testHelper.delete_business(1)])
         for resp in responses:
-            self.assertEqual(resp.status_code, 401)
+            self.assertEqual(resp.status_code, 403)
 
     def test_handles_updating_or_deleting_unavailble_business_id(self):
         self.testHelper.register_user(user_data)
