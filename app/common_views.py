@@ -32,7 +32,7 @@ def register_a_business (business_data, owner):
     try:
         msg = store.add (business)
     except DuplicationError as e:
-        return jsonify ({"msg": e.msg}), 401
+        return jsonify ({"msg": e.msg}), 409
 
     return jsonify({"msg": msg}), 201
 
@@ -40,8 +40,10 @@ def register_a_business (business_data, owner):
 def find_status_code (err):
     if type (err) == DataNotFoundError:
         status_code = 404
-    else:
-        status_code = 401
+    elif type(err) == PermissionDeniedError:
+        status_code = 403
+    elif type(err) == DuplicationError:
+        status_code = 409
     return status_code
 
 
@@ -103,14 +105,14 @@ def register ():
     try:
         user = User.create_user (data)
     except InvalidUserInputError as e:
-        return jsonify ({"msg": e.msg})
+        return jsonify ({"msg": e.msg}), 422
 
     try:
         msg = store.add (user)
     except DuplicationError as e:
-        return jsonify({'msg': e.msg}), 401
+        return jsonify({'msg': e.msg}), 409
 
-    return jsonify ({"msg": msg}), 200
+    return jsonify ({"msg": msg}), 201
 
 
 @v1.route ('/auth/login', methods = ['POST'])
@@ -204,7 +206,7 @@ def reset_password ():
         if token_bearer_name:
             target_user = store.users.get (token_bearer_name)
             target_user.password = new_password # more appropriate to redirect to url for change password
-            return jsonify ({"msg": "Password updated successfully"})
-        return jsonify ({"msg": "Invalid token"}), 401
+            return jsonify ({"msg": "Password updated successfully"}), 201
+        return jsonify ({"msg": "Invalid token"}), 422
 
     return jsonify ({"msg": "No username"}), 401
