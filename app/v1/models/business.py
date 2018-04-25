@@ -1,5 +1,6 @@
 from .. import store
 from ...exceptions import InvalidUserInputError
+from ...helpers import inspect_data
 import re
 
 class Business ():
@@ -12,14 +13,18 @@ class Business ():
                     params: int::num
     '''
     business_index = 0
+    required_fields = ["mobile", "name", "location"]
 
 
     @classmethod
     def create_business (cls, data, owner_id):
-        cls.business_index = store.get_business_index ()
+        # inspect_data raises a MissingDataError for blank fields
+        cleaned_data = inspect_data(cls.required_fields, data)
         # assign to property fields
+        cls.business_index = store.get_business_index ()
         new_business = cls (data, owner_id)
         new_business.mobile = data['mobile']
+        new_business.name = data['name']
         new_business.id = cls.business_index + 1
         return new_business
 
@@ -30,7 +35,7 @@ class Business ():
     def __init__ (self, data, owner_id):
         self._id = None
         self._mobile = None
-        self.name = data['name']
+        self._name = data['name']
         self.owner_id = owner_id
         self.location = data ['location']
 
@@ -47,6 +52,19 @@ class Business ():
         else:
             raise InvalidUserInputError ("Business::mobile.setter",
                                             "Invalid mobile number")
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, business_name):
+        pattern = r'([\w\d_]+( )?)+'
+        match = re.match(pattern, business_name)
+        if match:
+            self._name = business_name
+        else:
+            raise InvalidUserInputError(msg='Invalid business name')
 
     @property
     def id (self):

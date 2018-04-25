@@ -1,27 +1,33 @@
 from .. import store
-from ...exceptions import InvalidUserInputError
+from ...exceptions import InvalidUserInputError, MissingDataError
+from ...helpers import inspect_data
 import re
 
 class User ():
     '''
     '''
     user_index = 0
+    required_fields = ['username', 'mobile', 'first_name',
+        'last_name', 'gender', 'email', 'password']
 
     @classmethod
     def create_user (cls, data):
-        cls.user_index = store.get_user_index ()
+        # inspect_data raises a MissingDataError for blank fields
+        cleaned_data = inspect_data(cls.required_fields, data)
         new_user = cls (data)
         # assign to property fields
+        cls.user_index = store.get_user_index()
         new_user.id = cls.user_index + 1
         new_user.username = data['username']
         new_user.mobile = data['mobile']
+        new_user.email = data['email']
         return new_user
 
     def __init__ (self, data):
         self.first_name = data['first_name']
         self.last_name = data['last_name']
         self.gender = data['gender']
-        self.email = data['email']
+        self._email = data['email']
         self._mobile = None
         self._id = None
         self._username = None
@@ -65,6 +71,18 @@ class User ():
         if match:
             self._username = name
             return
-        self._username = None
         # assert 0, 'Invalid username'
         raise InvalidUserInputError ("User::namesetter", "Invalid username!")
+
+    @property
+    def email(self):
+        return self._email
+
+    @email.setter
+    def email(self, email):
+        email_pattern = r'^([\w\d_\.]+)@([\w\d]+)\.([\w\d]+\.?[\w\d]+)$'
+        match = re.search(email_pattern, email)
+        if match:
+            self._email = email
+            return
+        raise InvalidUserInputError(msg='Invalid email')
