@@ -6,7 +6,7 @@ user_data = {
     "mobile": "254720000000",
     "email": "johndoe@gmail.com",
     "username": "john_doe",
-    "password": "pass",
+    "password": "pass"
 }
 
 user_data2 = {
@@ -16,7 +16,7 @@ user_data2 = {
     "mobile": "254720000000",
     "email": "johndoe@gmail.com",
     "username": "john_doe2",
-    "password": "pass",
+    "password": "pass"
 }
 
 login_data = {
