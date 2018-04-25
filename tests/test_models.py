@@ -73,10 +73,16 @@ class TestUserCase (unittest.TestCase):
             self.new_user.mobile = '254725k000000'
 
     def test_validates_username(self):
-        invalid_names = ['000', 'j', '90jdj', 'axc', '    ']
+        invalid_names = ['000', 'j', '90jdj', 'axc']
         for name in invalid_names:
             with self.assertRaises(InvalidUserInputError):
                 self.new_user.username = name
+
+    def test_validates_email(self):
+        invalid_email = 'johndoe@g'
+        with self.assertRaises(InvalidUserInputError):
+            self.new_user.email = invalid_email
+
 
 if __name__ == "__main__":
     unittest.main (module = __name__)
