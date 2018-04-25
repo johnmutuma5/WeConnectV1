@@ -13,7 +13,7 @@ class User ():
     @classmethod
     def create_user (cls, data):
         # inspect_data raises a MissingDataError for blank fields
-        cleaned_data = inspect_data(cls.required_fields, data)
+        cleaned_data = inspect_data(data, cls.required_fields)
         new_user = cls (data)
         # assign to property fields
         cls.user_index = store.get_user_index()

@@ -19,7 +19,7 @@ class Business ():
     @classmethod
     def create_business (cls, data, owner_id):
         # inspect_data raises a MissingDataError for blank fields
-        cleaned_data = inspect_data(cls.required_fields, data)
+        cleaned_data = inspect_data(data, cls.required_fields)
         # assign to property fields
         cls.business_index = store.get_business_index ()
         new_business = cls (data, owner_id)
@@ -59,7 +59,7 @@ class Business ():
 
     @name.setter
     def name(self, business_name):
-        pattern = r'^([a-zA-Z]+[\w\d_\.-]+( )?)+'
+        pattern = r'^([a-zA-Z]+( )?[\w\d_\.-]+( )?)+'
         match = re.match(pattern, business_name)
         if match:
             self._name = business_name
