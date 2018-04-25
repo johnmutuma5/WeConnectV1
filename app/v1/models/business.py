@@ -33,11 +33,11 @@ class Business ():
         return 'BUS{:0>5}'.format(num)
 
     def __init__ (self, data, owner_id):
-        self._id = None
-        self._mobile = None
-        self._name = data['name']
         self.owner_id = owner_id
         self.location = data ['location']
+        self._id = None
+        self._mobile = None
+        self._name = None
 
     @property
     def mobile (self):
@@ -59,7 +59,7 @@ class Business ():
 
     @name.setter
     def name(self, business_name):
-        pattern = r'([\w\d_]+( )?)+'
+        pattern = r'^([a-zA-Z]+[\w\d_\.-]+( )?)+'
         match = re.match(pattern, business_name)
         if match:
             self._name = business_name
