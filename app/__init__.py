@@ -19,4 +19,4 @@ def index():
         + '>documentation</a>'
 
     return '<h1>Welcome to WeConnect</h1>.\
-            <br> Read %s for usage examples' %documentation
+            <br> Read %s for usage examples and sample data' %documentation
