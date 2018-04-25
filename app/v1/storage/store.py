@@ -14,8 +14,9 @@ class StoreHelper ():
 
     @staticmethod
     def update_business (target_business, update_data):
-        for key, value in update_data.items ():
+        for key, value in update_data.items():
             setattr(target_business, key, update_data[key])
+
 
     @staticmethod
     def extract_review_info (review):
@@ -87,28 +88,32 @@ class Storage ():
         users = self.__class__.users
         username = user_obj.username
 
-        if users.get(username): raise DuplicationError ('Storage::add_user',
-                                                        'Username already exists')
+        user_names = [name.lower() for name in users.keys()]
 
-        self.__class__.users[username] = user_obj
+        if username.lower() in user_names:
+            raise DuplicationError ('Storage::add_user',
+                'Username already exists')
+
+        self.__class__.users[username.lower()] = user_obj
         # increment the cont of users ever stored
         self.__class__.counts['users'] += 1
-        new_user = self.__class__.users[username]
-        return 'SUCCESS: user {} created!'.format(new_user.username)
+        return 'SUCCESS: user {} created!'.format(username)
 
 
     def add_business (self, business_obj):
         businesses = self.__class__.businesses
         businessname = business_obj.name
 
-        if businesses.get(businessname): raise DuplicationError ('Storage::add_business',
-                                                                    'Duplicate business name not allowed')
+        business_names = [name.lower() for name in businesses.keys()]
 
-        self.__class__.businesses[businessname] = business_obj
+        if businessname.lower() in business_names:
+            raise DuplicationError ('Storage::add_business',
+                'Duplicate business name not allowed')
+
+        self.__class__.businesses[businessname.lower()] = business_obj
         # increment the count of businesses ever stored
         self.__class__.counts['businesses'] += 1
-        new_business = self.__class__.businesses[businessname]
-        return 'SUCCESS: business {} created!'.format(new_business.name)
+        return 'SUCCESS: business {} created!'.format(businessname)
 
     def add_token (self, token, bearer_name):
         self.__class__.tokens [token] = bearer_name
@@ -170,24 +175,28 @@ class Storage ():
         raise DataNotFoundError (expression, msg)
 
     def update_business (self, business_id, update_data, issuer_id):
-        new_name = update_data.get ('name')
-        if new_name:
-            if self.__class__.businesses.get (new_name):
-                raise DuplicationError ("Storage::update_business",
-                                        'Duplicate business name not allowed')
+        new_name = update_data.get ('name', '')
+        businesses = [business for business in self.__class__.businesses.values()]
+        business_names = [name.lower() for name in self.__class__.businesses.keys()]
 
-        businesses = [business for business in self.__class__.businesses.values ()]
+        is_same = False
         target_business = self.find_by_id (business_id, businesses)
+        business_by_name = self.__class__.businesses.get(new_name.lower())
+
+        if business_by_name and target_business:
+            is_same = business_by_name.id == target_business.id
+
+        if new_name and target_business:
+            if new_name.lower() in business_names:
+                # check if target business and the stored key are same
+                if not is_same:
+                    raise DuplicationError ("Storage::update_business",
+                        'Duplicate business name not allowed')
 
         if target_business:
             issuer_is_owner = target_business.owner_id == issuer_id
             if issuer_is_owner:
-                old_key = target_business.name
-                self.clerk.update_business (target_business, update_data)
-                if new_name:
-                    self.__class__.businesses[new_name] = target_business
-                    del self.__class__.businesses[old_key]
-                return "Changes recorded successfully"
+                return self._do_update_business(target_business, update_data)
             # if instruction issuer is not owner
             msg = "UNSUCCESSFUL: The business is registered to another user"
             expression = "Storage::get_business_info ({}, {})".format (business_id, issuer_id)
@@ -197,6 +206,18 @@ class Storage ():
         expression = "Storage::get_business_info ({})".format (business_id)
         raise DataNotFoundError (expression, msg)
 
+
+    def _do_update_business(self, target_business, update_data):
+        new_name = update_data.get('name')
+        old_key = target_business.name.lower()
+        self.clerk.update_business (target_business, update_data)
+        if new_name:
+            self.__class__.businesses[new_name.lower()] = target_business
+            if not is_same:
+                del self.__class__.businesses[old_key]
+        return "Changes recorded successfully"
+
+
     def delete_business (self, business_id, issuer_id):
         businesses = [business for business in self.__class__.businesses.values ()]
         target_business = self.find_by_id (business_id, businesses)
@@ -204,7 +225,7 @@ class Storage ():
             issuer_is_owner = target_business.owner_id == issuer_id
             if issuer_is_owner:
                 # delete the business
-                key = target_business.name
+                key = target_business.name.lower()
                 del self.__class__.businesses[key]
                 return "SUCCESS: business deleted"
 
