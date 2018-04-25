@@ -17,12 +17,15 @@ def generate_token ():
     return token
 
 
-def inspect_data(required_fields, data):
+def inspect_data(data, required_fields=None):
     '''
         Removes extra spaces in data and checks for blank fields
     '''
+    if not required_fields:
+        required_fields = data.keys()
+        
     for field in required_fields:
-        field_value = data.get(field, "").strip()
+        field_value = str(data.get(field, "")).strip()
         if not len(field_value):
             raise MissingDataError(msg='Please provide %s' %field)
         field_value = " ".join(field_value.split())
