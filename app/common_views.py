@@ -28,7 +28,11 @@ def login_required (func):
 @login_required
 def register_a_business (business_data, owner):
     # create a business to register
-    business = Business.create_business (business_data, owner)
+    try:
+        business = Business.create_business (business_data, owner)
+    except InvalidUserInputError as e:
+        return jsonify({"msg": e.msg})
+
     try:
         msg = store.add (business)
     except DuplicationError as e:
@@ -38,12 +42,15 @@ def register_a_business (business_data, owner):
 
 
 def find_status_code (err):
+    status_code = None
     if type (err) == DataNotFoundError:
         status_code = 404
     elif type(err) == PermissionDeniedError:
         status_code = 403
     elif type(err) == DuplicationError:
         status_code = 409
+    elif type(err) == InvalidUserInputError:
+        status_code = 422
     return status_code
 
 
@@ -51,7 +58,8 @@ def find_status_code (err):
 def update_business_info (business_id, update_data, issuer_id):
     try:
         msg = store.update_business (business_id, update_data, issuer_id)
-    except (DataNotFoundError, PermissionDeniedError, DuplicationError) as put_err:
+    except (DataNotFoundError, PermissionDeniedError,
+        DuplicationError, InvalidUserInputError) as put_err:
         status_code = find_status_code (put_err)
         return jsonify({"msg": put_err.msg}), status_code
     return jsonify({"msg": msg}), 201
@@ -120,7 +128,7 @@ def login ():
     login_data = json.loads(request.data.decode('utf-8'))
     username = login_data['username']
 
-    target_user = store.users.get(username)
+    target_user = store.users.get(username.lower())
     if target_user:
         no_password_match = not target_user.password == login_data['password']
 
