@@ -87,12 +87,22 @@ class Storage ():
     def add_user (self, user_obj):
         users = self.__class__.users
         username = user_obj.username
+        email = user_obj.email
 
         user_names = [name.lower() for name in users.keys()]
+        emails = []
+        for user in users.values():
+            emails.append(user.email.lower())
 
-        if username.lower() in user_names:
+        username_exists = username.lower() in user_names
+        email_exists = email.lower() in emails
+
+        if username_exists:
             raise DuplicationError ('Storage::add_user',
                 'Username already exists')
+        if email_exists:
+            raise DuplicationError("Storage::add_user",
+                'Email already exists')
 
         self.__class__.users[username.lower()] = user_obj
         # increment the cont of users ever stored
@@ -175,7 +185,7 @@ class Storage ():
         raise DataNotFoundError (expression, msg)
 
     def update_business (self, business_id, update_data, issuer_id):
-        new_name = update_data.get ('name', '')
+        new_name = str(update_data.get ('name', ''))
         businesses = [business for business in self.__class__.businesses.values()]
         business_names = [name.lower() for name in self.__class__.businesses.keys()]
 
@@ -196,7 +206,7 @@ class Storage ():
         if target_business:
             issuer_is_owner = target_business.owner_id == issuer_id
             if issuer_is_owner:
-                return self._do_update_business(target_business, update_data)
+                return self._do_update_business(target_business, update_data, is_same)
             # if instruction issuer is not owner
             msg = "UNSUCCESSFUL: The business is registered to another user"
             expression = "Storage::get_business_info ({}, {})".format (business_id, issuer_id)
@@ -207,7 +217,7 @@ class Storage ():
         raise DataNotFoundError (expression, msg)
 
 
-    def _do_update_business(self, target_business, update_data):
+    def _do_update_business(self, target_business, update_data, is_same):
         new_name = update_data.get('name')
         old_key = target_business.name.lower()
         self.clerk.update_business (target_business, update_data)
