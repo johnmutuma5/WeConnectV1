@@ -1,10 +1,11 @@
 from app.v1 import v1, store
 # from app.v2 import v2
 from .v1.models import User, Business, Review
-from .helpers import generate_token
+from .helpers import generate_token, inspect_data
 from flask import jsonify, request, session
 from .exceptions import (DuplicationError, DataNotFoundError,
-                            PermissionDeniedError, InvalidUserInputError)
+                            PermissionDeniedError, InvalidUserInputError,
+                            MissingDataError)
 import json
 
 
@@ -105,6 +106,9 @@ def get_info_response (business_id, info_type):
 ''''''
 # BEGINNING OF ENDOPOINTS
 ''''''
+@v1.route('/')
+def index():
+    return jsonify({'msg': 'Welcome to Weconnect'})
 
 @v1.route('/auth/register', methods = ['POST'])
 def register ():
@@ -170,8 +174,12 @@ def business (business_id):
 
     elif request.method == 'PUT':
         update_data = json.loads (request.data.decode('utf-8'))
-        response = update_business_info (business_id, update_data, issuer_id) # this method is decorated with login_required
-        return response
+        try:
+            cleaned_data = inspect_data(update_data)
+            response = update_business_info (business_id, cleaned_data, issuer_id) # this method is decorated with login_required
+            return response
+        except MissingDataError as e:
+            return jsonify({'msg': e.msg})
 
     # handle DELETE
     response = delete_business (business_id, issuer_id)
