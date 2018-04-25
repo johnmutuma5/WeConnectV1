@@ -133,6 +133,19 @@ class TestBusinessCase (BaseAPITestSetUp):
         self.assertEqual(msg, 'Please provide name')
 
 
+    def test_users_cannot_update_with_invalid_name(self):
+        self.testHelper.register_user (user_data)
+        self.testHelper.login_user (login_data)
+        self.testHelper.register_business (business_data)
+        # register another businesses
+        self.testHelper.register_business (businesses_data[1])
+        name_update_data = {"name": 9}
+        resp = self.testHelper.update_business(1, name_update_data)
+        resp_dict = json.loads(resp.data.decode('utf-8'))
+        msg = resp_dict.get('msg')
+        self.assertEqual(msg, 'Invalid business name')
+
+
     def test_users_can_delete_business(self):
         self.testHelper.register_user(user_data)
         # login the first user
