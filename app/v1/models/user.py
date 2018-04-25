@@ -27,11 +27,11 @@ class User ():
         self.first_name = data['first_name']
         self.last_name = data['last_name']
         self.gender = data['gender']
-        self._email = data['email']
+        self.password = data['password']
+        self._email = None
         self._mobile = None
         self._id = None
         self._username = None
-        self.password = data['password']
 
     @property
     def mobile (self):
