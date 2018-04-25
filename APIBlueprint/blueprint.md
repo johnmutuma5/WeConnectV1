@@ -1,7 +1,7 @@
 FORMAT: 1A
-HOST: http://weconnectapp-heroku.herokuapp.com
+HOST: http://weconnect-api-heroku.herokuapp.com
 
-# weconnect
+# WeConnect
 WeConnect provides a platform that brings businesses and individuals together.
 This platform creates awareness for businesses and gives the users the
 ability to write reviews about the businesses they have interacted with.
@@ -20,7 +20,7 @@ all the required fields are supplied.
   + Attributes (User Data)
 
 
-+ Response 201 (application/json)
++ Response Created 201 (application/json)
     The client recevies a success message on registration
 
   + Attributes
@@ -81,7 +81,7 @@ Handles logout requests
 
 
 
-## Reseting passwords [/api/v1/auth/reset-password]
+## Resetting passwords [/api/v1/auth/reset-password]
 Handles users' requests to change a password. A link with a verification token should be sent to their registered email address to enable changing password
 
 ### Reset a user password [POST]
@@ -123,7 +123,7 @@ Resource for registering businesses and getting information for all businesses s
 This action registers businesses.
 
 + Request (application/json)
-  Include data fro the business to be registered
+  Includes data for the business to be registered
 
   + Attributes (Business Registration Info)
 
@@ -168,7 +168,7 @@ This action sends a request to retrieve information of a single business.
 It include a URI parameter representing the `id` of the business
 
 + Response 200 (application/json)
-Include information of a business referenced by `id` mapping to the business's `id`
+Includes information of a business referenced by `id` mapping to the business's `id`
 
   + Attributes (Business Info)
 
@@ -284,6 +284,12 @@ This action handles getting all the reviews of a business
   Includes a list of all reviews of a business
 
     + Attributes (array[Full Review Info])
+
++ Response 404 (application/json)
+  Includes an error message for trying to retrieve reviews with an unrecognized business `id`
+
+    + Attributes
+          - Include Business Not Found Error
 
 
 
