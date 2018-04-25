@@ -9,7 +9,7 @@ from .dummies import (user_data, user_data2, business_data,
 import re
 
 
-class TestAPICase (BaseAPITestSetUp):
+class TestBusinessCase (BaseAPITestSetUp):
     def test_user_can_register_business (self):
         self.testHelper.register_user (user_data)
         self.testHelper.login_user (login_data)
@@ -18,8 +18,35 @@ class TestAPICase (BaseAPITestSetUp):
 
         pattern = r"^SUCCESS[: a-z]+ (?P<business>.+) [a-z!]+$"
         self.assertRegexpMatches (msg, pattern)
-    # #
-    # @pytest.mark.run(order = 7)
+
+    def test_users_cannot_register_business_without_login_in(self):
+        res = self.testHelper.register_business (business_data)
+        resp_dict = json.loads(res.data.decode("utf-8"))
+        msg = resp_dict['msg']
+        self.assertEqual(msg, 'You need to log in to perform this operation')
+
+
+
+    def test_handles_blank_business_name(self):
+        self.testHelper.register_user (user_data)
+        self.testHelper.login_user (login_data)
+        data_lacking_name = {**business_data, "name": ""}
+        res = self.testHelper.register_business (data_lacking_name)
+        resp_dict = json.loads(res.data.decode('utf-8'))
+        msg = resp_dict.get("msg")
+        self.assertEqual(msg, "Please provide name")
+
+
+    def test_handles_invalid_business_name(self):
+        self.testHelper.register_user (user_data)
+        self.testHelper.login_user (login_data)
+        data_having_bad_name = {**business_data, "name": "...fjfj.."}
+        res = self.testHelper.register_business (data_having_bad_name)
+        resp_dict = json.loads(res.data.decode('utf-8'))
+        msg = resp_dict.get("msg")
+        self.assertEqual(msg, "Invalid business name")
+
+
     def test_duplicate_businessname_disallowed (self):
         self.testHelper.register_user (user_data)
         self.testHelper.login_user (login_data)
@@ -65,8 +92,8 @@ class TestAPICase (BaseAPITestSetUp):
         # test message to match regex
         pattern = r"^UNSUCCESSFUL:.+$"
         self.assertRegexpMatches (res_msg, pattern)
-    #
-    # @pytest.mark.run(order = 11)
+
+
     def test_users_update_a_business (self):
         raw_id = 1
         self.testHelper.register_user (user_data)
@@ -80,6 +107,7 @@ class TestAPICase (BaseAPITestSetUp):
         for key, value in update_data.items():
             self.assertEqual (update_data[key], res_business_info[key])
 
+
     def test_users_cannot_update_with_existing_business_names (self):
         self.testHelper.register_user (user_data)
         self.testHelper.login_user (login_data)
@@ -92,8 +120,21 @@ class TestAPICase (BaseAPITestSetUp):
         self.assertEqual (msg, "Duplicate business name not allowed")
 
 
-    def test_users_can_delete_business (self):
+    def test_users_cannot_update_with_blank_name(self):
         self.testHelper.register_user (user_data)
+        self.testHelper.login_user (login_data)
+        self.testHelper.register_business (business_data)
+        # register another businesses
+        self.testHelper.register_business (businesses_data[1])
+        name_update_data = {"name": "  "}
+        resp = self.testHelper.update_business(1, name_update_data)
+        resp_dict = json.loads(resp.data.decode('utf-8'))
+        msg = resp_dict.get('msg')
+        self.assertEqual(msg, 'Invalid business name')
+
+
+    def test_users_can_delete_business(self):
+        self.testHelper.register_user(user_data)
         # login the first user
         self.testHelper.login_user (login_data)
         self.testHelper.register_business (business_data)
@@ -102,7 +143,8 @@ class TestAPICase (BaseAPITestSetUp):
         msg = (json.loads(resp.data.decode("utf-8")))["msg"]
         self.assertEqual (msg, "SUCCESS: business deleted")
 
-    def test_users_can_only_update_or_delete_their_business(self):
+
+    def test_users_can_only_update_their_business(self):
         self.testHelper.register_user(user_data)
         self.testHelper.login_user(login_data)
         self.testHelper.register_business(business_data)
@@ -111,32 +153,47 @@ class TestAPICase (BaseAPITestSetUp):
         # create a second user`
         self.testHelper.register_user(user_data2)
         self.testHelper.login_user(login_data2)
-        # try to update and del a business created by the just logged out user
-        responses = []
-        responses.extend([
-            # unauthorised update
-            self.testHelper.update_business(1, update_data),
-            # unauthorised del
-            self.testHelper.delete_business(1)])
-        for resp in responses:
-            self.assertEqual(resp.status_code, 403)
+        # try to update a business created by the just logged out user
+        resp = self.testHelper.update_business(1, update_data)
+        self.assertEqual(resp.status_code, 403)
 
-    def test_handles_updating_or_deleting_unavailble_business_id(self):
+
+    def test_users_can_only_delete_their_business(self):
+        self.testHelper.register_user(user_data)
+        self.testHelper.login_user(login_data)
+        self.testHelper.register_business(business_data)
+        # logout the current user
+        self.testHelper.logout_user()
+        # create a second user`
+        self.testHelper.register_user(user_data2)
+        self.testHelper.login_user(login_data2)
+        # try to delete a business created by the just logged out user
+        resp = self.testHelper.delete_business(1)
+        self.assertEqual(resp.status_code, 403)
+
+
+    def test_handles_updating_unavailble_business_id(self):
         self.testHelper.register_user(user_data)
         res = self.testHelper.login_user(login_data)
         # update with an unavailable id
         name_update_data = {"name": "Google"}
-        responses = []
-        responses.extend([
-            # update unavailable business
-            self.testHelper.update_business(10001, name_update_data),
-            # del unavailable business
-            self.testHelper.delete_business(10001)])
-        for resp in responses:
-            res_msg = (json.loads(resp.data.decode("utf-8")))["msg"]
-            # test message to match regex
-            pattern = r"^UNSUCCESSFUL:.+$"
-            self.assertRegexpMatches(res_msg, pattern)
+        resp = self.testHelper.update_business(10001, name_update_data)
+        res_msg = (json.loads(resp.data.decode("utf-8")))["msg"]
+        # test message to match regex
+        pattern = r"^UNSUCCESSFUL:.+$"
+        self.assertRegexpMatches(res_msg, pattern)
+
+
+    def test_handles_deleting_unavailble_business_id(self):
+        self.testHelper.register_user(user_data)
+        res = self.testHelper.login_user(login_data)
+        # update with an unavailable id
+        name_update_data = {"name": "Google"}
+        resp = self.testHelper.delete_business(10001)
+        res_msg = (json.loads(resp.data.decode("utf-8")))["msg"]
+        # test message to match regex
+        pattern = r"^UNSUCCESSFUL:.+$"
+        self.assertRegexpMatches(res_msg, pattern)
 
 
 
