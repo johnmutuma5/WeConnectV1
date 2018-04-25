@@ -2,7 +2,7 @@ from app.v1 import v1, store
 # from app.v2 import v2
 from .v1.models import User, Business, Review
 from .helpers import generate_token, inspect_data
-from flask import jsonify, request, session
+from flask import jsonify, request, session, render_template
 from .exceptions import (DuplicationError, DataNotFoundError,
                             PermissionDeniedError, InvalidUserInputError,
                             MissingDataError)
@@ -223,3 +223,7 @@ def reset_password ():
         return jsonify ({"msg": "Invalid token"}), 422
 
     return jsonify ({"msg": "No username"}), 401
+
+@v1.route('/documentation')
+def documentation():
+    return render_template('documentation.html')
