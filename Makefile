@@ -12,3 +12,6 @@ test:
 
 doc:
 	node ./APIBlueprint/genHTML.js
+
+run:
+	python run.py
