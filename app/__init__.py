@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify    
 
 # Blueprints
 from .v1 import v1
@@ -9,3 +9,9 @@ app.config.from_object ('config.Config')
 
 app.register_blueprint (v1, url_prefix = "/api/v1")
 # app.register_blueprint (v2, url_prefix = "/api/v2")
+
+
+
+@app.route('/', methods=['GET'])
+def index():
+    return jsonify({'msg': 'Welcome to Weconnect'})

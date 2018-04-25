@@ -106,9 +106,6 @@ def get_info_response (business_id, info_type):
 ''''''
 # BEGINNING OF ENDOPOINTS
 ''''''
-@v1.route('/')
-def index():
-    return jsonify({'msg': 'Welcome to Weconnect'})
 
 @v1.route('/auth/register', methods = ['POST'])
 def register ():
