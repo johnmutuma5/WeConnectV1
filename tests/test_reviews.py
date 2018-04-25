@@ -45,7 +45,7 @@ class TestAPICase (BaseAPITestSetUp):
             self.assertIn (data['heading'], resp_review_headings)
 
 
-    def test_users_retrieve_only_avail_business_info_and_reviews(self):
+    def test_users_cannot_retrieve_reviews_for_non_existent_businesses(self):
         raw_id = 1000000
         responses = [self.testHelper.get_business(raw_id),
                      self.testHelper.get_all_reviews(raw_id)]

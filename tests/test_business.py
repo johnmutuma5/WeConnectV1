@@ -130,7 +130,7 @@ class TestBusinessCase (BaseAPITestSetUp):
         resp = self.testHelper.update_business(1, name_update_data)
         resp_dict = json.loads(resp.data.decode('utf-8'))
         msg = resp_dict.get('msg')
-        self.assertEqual(msg, 'Invalid business name')
+        self.assertEqual(msg, 'Please provide name')
 
 
     def test_users_can_delete_business(self):
