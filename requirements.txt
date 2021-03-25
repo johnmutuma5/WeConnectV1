@@ -19,7 +19,7 @@ psycopg2-binary==2.7.4
 py==1.5.2
 pytest==3.4.1
 pytest-ordering==0.5
-PyYAML==3.12
+PyYAML==5.4
 requests==2.18.4
 six==1.11.0
 SQLAlchemy==1.2.5
